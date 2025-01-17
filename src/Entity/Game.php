@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\GameRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\GameRepository;
+use Doctrine\Common\Collections\Collection;
+use PHPUnit\TextUI\XmlConfiguration\Groups;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
 #[ORM\InheritanceType("SINGLE_TABLE")]
@@ -20,21 +21,25 @@ class Game
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['event:read', 'user:read'])]
     private ?int $id = null;
 
     /**
      * @var Collection<int, Event>
      */
     #[ORM\ManyToMany(targetEntity: Event::class, mappedBy: 'games')]
+    #[Groups(['event:read', 'user:read'])]
     private Collection $events;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['event:read', 'user:read'])]
     private ?string $name = null;
 
     #[ORM\Column]
     private ?int $maxPlayers = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['event:read', 'user:read'])]
     private ?string $gameType = null;
 
     public function __construct()

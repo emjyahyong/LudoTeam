@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\EventRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\EventRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
 class Event
@@ -14,27 +15,33 @@ class Event
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['event:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'eventsOrganized')]
+    #[Groups(['event:read', 'user:read'])]
     private ?User $organizer = null;
 
     /**
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'eventsParticipating')]
+    #[Groups(['event:read', 'user:read'])]
     private Collection $participants;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['event:read', 'user:read'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['event:read', 'user:read'])]
     private ?\DateTimeInterface $date = null;
 
     /**
      * @var Collection<int, Game>
      */
     #[ORM\ManyToMany(targetEntity: Game::class, inversedBy: 'events')]
+    #[Groups(['event:read', 'user:read'])]
     private Collection $games;
 
     public function __construct()
