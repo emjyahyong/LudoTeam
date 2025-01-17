@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -32,6 +34,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $name = null;
+
+    /**
+     * @var Collection<int, Event>
+     */
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'organizer')]
+    private Collection $eventsOrganized;
+
+    /**
+     * @var Collection<int, Event>
+     */
+    #[ORM\ManyToMany(targetEntity: Event::class, inversedBy: 'participants')]
+    private Collection $eventsParticipating;
+
+    public function __construct()
+    {
+        $this->eventsOrganized = new ArrayCollection();
+        $this->eventsParticipating = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -105,5 +128,71 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getEventsOrganized(): Collection
+    {
+        return $this->eventsOrganized;
+    }
+
+    public function addEventsOrganized(Event $eventsOrganized): static
+    {
+        if (!$this->eventsOrganized->contains($eventsOrganized)) {
+            $this->eventsOrganized->add($eventsOrganized);
+            $eventsOrganized->setOrganizer($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEventsOrganized(Event $eventsOrganized): static
+    {
+        if ($this->eventsOrganized->removeElement($eventsOrganized)) {
+            // set the owning side to null (unless already changed)
+            if ($eventsOrganized->getOrganizer() === $this) {
+                $eventsOrganized->setOrganizer(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getEventsParticipating(): Collection
+    {
+        return $this->eventsParticipating;
+    }
+
+    public function addEventsParticipating(Event $eventsParticipating): static
+    {
+        if (!$this->eventsParticipating->contains($eventsParticipating)) {
+            $this->eventsParticipating->add($eventsParticipating);
+        }
+
+        return $this;
+    }
+
+    public function removeEventsParticipating(Event $eventsParticipating): static
+    {
+        $this->eventsParticipating->removeElement($eventsParticipating);
+
+        return $this;
     }
 }
