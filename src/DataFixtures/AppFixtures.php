@@ -26,9 +26,73 @@ class AppFixtures extends Fixture
     {
         $faker = Factory::create('fr_FR');
         
-        // Création des utilisateurs
+        // La partie utilisateurs reste inchangée car elle fonctionne bien
+        $users = $this->createUsers($manager, $faker);
+
+        // Création des jeux avec leurs types explicites
+        $games = [];
+        
+        // Jeux de plateau
+        $boardGames = [
+            ['name' => 'Échecs', 'maxPlayers' => 2],
+            ['name' => 'Monopoly', 'maxPlayers' => 8],
+            ['name' => 'Risk', 'maxPlayers' => 6],
+            ['name' => 'Catan', 'maxPlayers' => 4],
+            ['name' => 'Scrabble', 'maxPlayers' => 4]
+        ];
+
+        foreach ($boardGames as $gameData) {
+            $game = new BoardGame();
+            $game->setName($gameData['name'])
+                 ->setMaxPlayers($gameData['maxPlayers'])
+                 ->setGameType('board');  // Ajout explicite du type
+            $manager->persist($game);
+            $games[] = $game;
+        }
+
+        // Jeux de cartes
+        $cardGames = [
+            ['name' => 'Poker', 'maxPlayers' => 10],
+            ['name' => 'Belote', 'maxPlayers' => 4],
+            ['name' => 'Uno', 'maxPlayers' => 10],
+            ['name' => '7 Wonders', 'maxPlayers' => 7]
+        ];
+
+        foreach ($cardGames as $gameData) {
+            $game = new CardGame();
+            $game->setName($gameData['name'])
+                 ->setMaxPlayers($gameData['maxPlayers'])
+                 ->setGameType('card');  // Ajout explicite du type
+            $manager->persist($game);
+            $games[] = $game;
+        }
+
+        // Jeux de duel
+        $duelGames = [
+            ['name' => 'Magic: The Gathering', 'maxPlayers' => 2],
+            ['name' => 'Yu-Gi-Oh!', 'maxPlayers' => 2],
+            ['name' => 'Morpion', 'maxPlayers' => 2]
+        ];
+
+        foreach ($duelGames as $gameData) {
+            $game = new DuelGame();
+            $game->setName($gameData['name'])
+                 ->setMaxPlayers($gameData['maxPlayers'])
+                 ->setGameType('duel');  // Ajout explicite du type
+            $manager->persist($game);
+            $games[] = $game;
+        }
+
+        // Création des événements avec une meilleure gestion des indices
+        $this->createEvents($manager, $games, $users);
+
+        $manager->flush();
+    }
+
+    private function createUsers(ObjectManager $manager, \Faker\Generator $faker): array
+    {
         $users = [];
-        // Création d'un admin pour faciliter les tests
+        // Création d'un admin
         $admin = new User();
         $admin->setEmail('admin@ludoteam.fr')
               ->setName('Admin')
@@ -47,84 +111,37 @@ class AppFixtures extends Fixture
             $users[] = $user;
         }
 
-        // Création des jeux
-        $games = [];
-        
-        // Jeux de plateau
-        $boardGames = [
-            ['name' => 'Échecs', 'maxPlayers' => 2],
-            ['name' => 'Monopoly', 'maxPlayers' => 8],
-            ['name' => 'Risk', 'maxPlayers' => 6],
-            ['name' => 'Catan', 'maxPlayers' => 4],
-            ['name' => 'Scrabble', 'maxPlayers' => 4]
-        ];
+        return $users;
+    }
 
-        foreach ($boardGames as $gameData) {
-            $game = new BoardGame();
-            $game->setName($gameData['name'])
-                 ->setMaxPlayers($gameData['maxPlayers']);
-            $manager->persist($game);
-            $games[] = $game;
-        }
-
-        // Jeux de cartes
-        $cardGames = [
-            ['name' => 'Poker', 'maxPlayers' => 10],
-            ['name' => 'Belote', 'maxPlayers' => 4],
-            ['name' => 'Uno', 'maxPlayers' => 10],
-            ['name' => '7 Wonders', 'maxPlayers' => 7]
-        ];
-
-        foreach ($cardGames as $gameData) {
-            $game = new CardGame();
-            $game->setName($gameData['name'])
-                 ->setMaxPlayers($gameData['maxPlayers']);
-            $manager->persist($game);
-            $games[] = $game;
-        }
-
-        // Jeux de duel
-        $duelGames = [
-            ['name' => 'Magic: The Gathering', 'maxPlayers' => 2],
-            ['name' => 'Yu-Gi-Oh!', 'maxPlayers' => 2],
-            ['name' => 'Morpion', 'maxPlayers' => 2]
-        ];
-
-        foreach ($duelGames as $gameData) {
-            $game = new DuelGame();
-            $game->setName($gameData['name'])
-                 ->setMaxPlayers($gameData['maxPlayers']);
-            $manager->persist($game);
-            $games[] = $game;
-        }
-
-        // Création des événements
+    private function createEvents(ObjectManager $manager, array $games, array $users): void
+    {
         $eventTemplates = [
             [
                 'name' => 'Soirée Échecs',
                 'daysAhead' => 7,
-                'games' => [$games[0]], // Échecs
+                'gameIndices' => [0],  // Utilisation d'indices plutôt que d'objets directs
                 'minParticipants' => 4,
                 'maxParticipants' => 8
             ],
             [
                 'name' => 'Tournoi de Cartes',
                 'daysAhead' => 14,
-                'games' => [$games[5], $games[6]], // Poker et Belote
+                'gameIndices' => [5, 6],
                 'minParticipants' => 6,
                 'maxParticipants' => 12
             ],
             [
                 'name' => 'Après-midi Jeux de Plateau',
                 'daysAhead' => 3,
-                'games' => [$games[1], $games[2], $games[3]], // Monopoly, Risk, Catan
+                'gameIndices' => [1, 2, 3],
                 'minParticipants' => 5,
                 'maxParticipants' => 10
             ],
             [
                 'name' => 'Soirée Duels',
                 'daysAhead' => 21,
-                'games' => [$games[9], $games[10]], // Magic et Yu-Gi-Oh!
+                'gameIndices' => [9, 10],
                 'minParticipants' => 4,
                 'maxParticipants' => 8
             ]
@@ -136,12 +153,14 @@ class AppFixtures extends Fixture
                  ->setDate(new DateTime('+' . $template['daysAhead'] . ' days'))
                  ->setOrganizer($users[array_rand($users)]);
 
-            // Ajout des jeux à l'événement
-            foreach ($template['games'] as $game) {
-                $event->addGame($game);
+            // Ajout des jeux en utilisant les indices
+            foreach ($template['gameIndices'] as $index) {
+                if (isset($games[$index])) {
+                    $event->addGame($games[$index]);
+                }
             }
 
-            // Ajout aléatoire de participants
+            // Ajout des participants
             $numParticipants = rand($template['minParticipants'], $template['maxParticipants']);
             $shuffledUsers = $users;
             shuffle($shuffledUsers);
@@ -152,7 +171,5 @@ class AppFixtures extends Fixture
 
             $manager->persist($event);
         }
-
-        $manager->flush();
     }
 }
