@@ -1,30 +1,29 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Event{% endblock %}
+{% block title %}Détails de l'événement{% endblock %}
 
 {% block body %}
-    <h1>Event</h1>
+    <h1>{{ event.name }}</h1>
+    <p>Date : {{ event.date ? event.date|date('Y-m-d H:i:s') : '' }}</p>
+    <p>Organisateur : {{ event.organizer.name }}</p>
+    <p>Participants : {{ event.participants|length }}</p>
+    <p>Jeux associés : 
+        {% for game in event.games %}
+            {{ game.name }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    </p>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ event.id }}</td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <td>{{ event.name }}</td>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <td>{{ event.date ? event.date|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    {% if is_granted('ROLE_USER') %}
+        {% if not event.participants.contains(app.user) %}
+            <form method="post" action="{{ path('app_event_join', {'id': event.id}) }}">
+                <button type="submit" class="btn btn-primary">Rejoindre l'événement</button>
+            </form>
+        {% else %}
+            <form method="post" action="{{ path('app_event_leave', {'id': event.id}) }}">
+                <button type="submit" class="btn btn-warning">Quitter l'événement</button>
+            </form>
+        {% endif %}
+    {% endif %}
 
-    <a href="{{ path('app_event_index') }}">back to list</a>
-
-    <a href="{{ path('app_event_edit', {'id': event.id}) }}">edit</a>
-
-    {{ include('event/_delete_form.html.twig') }}
+    <a href="{{ path('app_event_index') }}">Retour à la liste</a>
 {% endblock %}

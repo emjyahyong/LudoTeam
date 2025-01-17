@@ -1,39 +1,53 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Game index{% endblock %}
+{% block title %}Liste des jeux{% endblock %}
 
 {% block body %}
-    <h1>Game index</h1>
+    <h1>Liste des jeux de société</h1>
+
+    <form method="get">
+        <input type="text" name="name" placeholder="Filtrer par nom de jeu">
+        <select name="gameType">
+            <option value="">Filtrer par type de jeu</option>
+            <option value="plateau">Plateau</option>
+            <option value="carte">Carte</option>
+            <option value="duel">Duel</option>
+        </select>
+        <input type="number" name="maxPlayers" placeholder="Filtrer par nombre de joueurs">
+        <button type="submit" class="btn btn-primary">Filtrer</button>
+    </form>
 
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>MaxPlayers</th>
-                <th>GameType</th>
-                <th>actions</th>
+                <th>Nom</th>
+                <th>Nombre de joueurs</th>
+                <th>Type de jeu</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for game in games %}
             <tr>
-                <td>{{ game.id }}</td>
                 <td>{{ game.name }}</td>
                 <td>{{ game.maxPlayers }}</td>
                 <td>{{ game.gameType }}</td>
                 <td>
-                    <a href="{{ path('app_game_show', {'id': game.id}) }}">show</a>
-                    <a href="{{ path('app_game_edit', {'id': game.id}) }}">edit</a>
+                    <a href="{{ path('app_game_show', {'id': game.id}) }}" class="btn btn-info">Voir</a>
+                    <a href="{{ path('app_game_edit', {'id': game.id}) }}" class="btn btn-warning">Modifier</a>
+                    <form method="post" action="{{ path('app_game_delete', {'id': game.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce jeu ?');" style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ game.id) }}">
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="4">Aucun jeu trouvé</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_game_new') }}">Create new</a>
+    <a href="{{ path('app_game_new') }}" class="btn btn-success">Ajouter un nouveau jeu</a>
 {% endblock %}

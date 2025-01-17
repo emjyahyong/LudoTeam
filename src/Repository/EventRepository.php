@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Event;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 
 /**
  * @extends ServiceEntityRepository<Event>
@@ -16,28 +17,34 @@ class EventRepository extends ServiceEntityRepository
         parent::__construct($registry, Event::class);
     }
 
-//    /**
-//     * @return Event[] Returns an array of Event objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('e.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Recherche des événements par critères (nom, date, participants)
+     *
+     * @param string|null $name
+     * @param \DateTime|null $date
+     * @param int|null $participants
+     * @return Event[]
+     */
+    public function findByCriteria(?string $name, ?\DateTime $date, ?int $participants): array
+{
+    $qb = $this->createQueryBuilder('e');
 
-//    public function findOneBySomeField($value): ?Event
-//    {
-//        return $this->createQueryBuilder('e')
-//            ->andWhere('e.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    if ($name) {
+        $qb->andWhere('e.name LIKE :name')
+           ->setParameter('name', '%' . $name . '%');
+    }
+
+    if ($date) {
+        $qb->andWhere('e.date = :date')
+           ->setParameter('date', $date);
+    }
+
+    if ($participants !== null) {
+        $qb->andWhere('e.participants >= :participants')
+           ->setParameter('participants', $participants);
+    }
+
+    return $qb->getQuery()->getResult();
+}
+
 }

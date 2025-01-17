@@ -1,37 +1,48 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Event index{% endblock %}
+{% block title %}Liste des événements{% endblock %}
 
 {% block body %}
-    <h1>Event index</h1>
+    <h1>Liste des événements</h1>
+
+    <form method="get">
+        <input type="text" name="name" placeholder="Filtrer par nom" value="{{ app.request.query.get('name') }}">
+        <input type="date" name="date" placeholder="Filtrer par date" value="{{ app.request.query.get('date') }}">
+        <input type="number" name="participants" placeholder="Filtrer par nombre de participants" value="{{ app.request.query.get('participants') }}">
+        <button type="submit" class="btn btn-primary">Filtrer</button>
+    </form>
 
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Name</th>
+                <th>Nom de l'événement</th>
                 <th>Date</th>
-                <th>actions</th>
+                <th>Nombre de participants</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for event in events %}
             <tr>
-                <td>{{ event.id }}</td>
                 <td>{{ event.name }}</td>
                 <td>{{ event.date ? event.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ event.participants|length }}</td>
                 <td>
-                    <a href="{{ path('app_event_show', {'id': event.id}) }}">show</a>
-                    <a href="{{ path('app_event_edit', {'id': event.id}) }}">edit</a>
+                    <a href="{{ path('app_event_show', {'id': event.id}) }}">Voir</a>
+                    <a href="{{ path('app_event_edit', {'id': event.id}) }}">Modifier</a>
+                    <form method="post" action="{{ path('app_event_delete', {'id': event.id}) }}" onsubmit="return confirm('Êtes-vous sûr ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                        <button type="submit" class="btn btn-danger">Supprimer</button>
+                    </form>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">no records found</td>
+                <td colspan="4">Aucun événement trouvé</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_event_new') }}">Create new</a>
+    <a href="{{ path('app_event_new') }}" class="btn btn-success">Créer un nouvel événement</a>
 {% endblock %}
